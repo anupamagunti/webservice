@@ -21,14 +21,12 @@ async def issue_opened_event(event, gh, *args, **kwargs):
     print(f"message: @{message}")
     #await gh.post(url, data={"body": message})
 
-#@router.register("pull_request", action="opened")
-#async def pull_request_opened_event(event, gh, *args, **kwargs):
-#    """
-#    Whenever an pull request is opened, lets see what to do
-#    """
-#    print("Testing 1")
-#    url = event.data["pull_request"]
-#    print(f"Event: @{url}")
+@router.register("pull_request", action="opened")
+async def pull_request_opened_event(event, gh, *args, **kwargs):
+    """    Whenever an pull request is opened, lets see what to do    """
+    print("Testing 1")
+    url = event.data["pull_request"]
+    print(f"Event: @{url}")
 #    #await gh.post(url, data={"body": message})
 
 @router.register("pull_request_review_comment", action="created")
