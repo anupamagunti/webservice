@@ -19,6 +19,14 @@ async def pull_request_opened_event(event, gh, *args, **kwargs):
     print(f"Event: @{url}")
     #await gh.post(url, data={"body": message})
 
+@router.register("pull_request_review_comment", action="created")
+async def pul_request_review_comment_created_event(event, gh, *args, **kwargs):
+   """
+   Whereever there is a PR comment, lets see what to do
+   """
+   comment = event.data["comment"]
+   print(f"Comment: @{comment}")
+
 @routes.post("/")
 async def main(request):
     body = await request.read()
@@ -35,3 +43,9 @@ async def main(request):
 
 if __name__ == "__main__":
     app = web.Application()
+    app.add_routes(routes)
+    port = os.environ.get("PORT")
+    if port is not None:
+        port = int(port)
+
+    web.run_app(app, port=port)
