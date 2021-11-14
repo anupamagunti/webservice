@@ -15,6 +15,7 @@ async def pull_request_opened_event(event, gh, *args, **kwargs):
     """
     Whenever an pull request is opened, lets see what to do
     """
+    print("Testing 1")
     url = event.data["pull_request"]
     print(f"Event: @{url}")
     #await gh.post(url, data={"body": message})
@@ -24,6 +25,7 @@ async def pul_request_review_comment_created_event(event, gh, *args, **kwargs):
    """
    Whereever there is a PR comment, lets see what to do
    """
+   print(f"Event: @{event})
    comment = event.data["comment"]
    print(f"Comment: @{comment}")
 
