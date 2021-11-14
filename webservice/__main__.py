@@ -10,24 +10,34 @@ routes = web.RouteTableDef()
 
 router = routing.Router()
 
-@router.register("pull_request", action="opened")
-async def pull_request_opened_event(event, gh, *args, **kwargs):
-    """
-    Whenever an pull request is opened, lets see what to do
-    """
-    print("Testing 1")
-    url = event.data["pull_request"]
-    print(f"Event: @{url}")
+@router.register("issues", action="opened")
+async def issue_opened_event(event, gh, *args, **kwargs):
+    """ Whenever an issue is opened, greet the author and say thanks."""
+
+    url = event.data["issue"]["comments_url"]
+    author = event.data["issue"]["user"]["login"]
+
+    message = f"Thanks for the report @{author}! I will look into it ASAP! (I'm a bot)."
     #await gh.post(url, data={"body": message})
 
-@router.register("pull_request_review_comment", action="created")
-async def pul_request_review_comment_created_event(event, gh, *args, **kwargs):
-   """
-   Whereever there is a PR comment, lets see what to do
-   """
-   print(f"Event: @{event}")
-   comment = event.data["comment"]
-   print(f"Comment: @{comment}")
+#@router.register("pull_request", action="opened")
+#async def pull_request_opened_event(event, gh, *args, **kwargs):
+#    """
+#    Whenever an pull request is opened, lets see what to do
+#    """
+#    print("Testing 1")
+#    url = event.data["pull_request"]
+#    print(f"Event: @{url}")
+#    #await gh.post(url, data={"body": message})
+
+#@router.register("pull_request_review_comment", action="created")
+#async def pul_request_review_comment_created_event(event, gh, *args, **kwargs):
+#   """
+#   Whereever there is a PR comment, lets see what to do
+#   """
+#   print(f"Event: @{event}")
+#   comment = event.data["comment"]
+#   print(f"Comment: @{comment}")
 
 @routes.post("/")
 async def main(request):
