@@ -31,14 +31,12 @@ async def issue_opened_event(event, gh, *args, **kwargs):
 #    print(f"Event: @{url}")
 #    #await gh.post(url, data={"body": message})
 
-#@router.register("pull_request_review_comment", action="created")
-#async def pul_request_review_comment_created_event(event, gh, *args, **kwargs):
-#   """
-#   Whereever there is a PR comment, lets see what to do
-#   """
+@router.register("pull_request_review_comment", action="created")
+async def pul_request_review_comment_created_event(event, gh, *args, **kwargs):
+    """   Whereever there is a PR comment, lets see what to do   """
 #   print(f"Event: @{event}")
-#   comment = event.data["comment"]
-#   print(f"Comment: @{comment}")
+    comment = event.data["comment"]
+    print(f"Comment: @{comment}")
 
 @routes.post("/")
 async def main(request):
