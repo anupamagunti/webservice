@@ -25,7 +25,7 @@ async def pul_request_review_comment_created_event(event, gh, *args, **kwargs):
    """
    Whereever there is a PR comment, lets see what to do
    """
-   print(f"Event: @{event})
+   print(f"Event: @{event}")
    comment = event.data["comment"]
    print(f"Comment: @{comment}")
 
