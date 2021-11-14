@@ -24,6 +24,7 @@ async def pull_request_comment_event(event, gh, *args, **kwargs):
     """
     Whenever an pull request gets a comment, lets see what to do
     """
+    print(f"I am here")
     comment = event.data["comment"]
     print(f"Event: @{comment}")
     #await gh.post(url, data={"body": message})
