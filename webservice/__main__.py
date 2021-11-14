@@ -13,21 +13,10 @@ router = routing.Router()
 @router.register("pull_request", action="opened")
 async def pull_request_opened_event(event, gh, *args, **kwargs):
     """
-    Whenever an pull request gets opened, lets see what to do
+    Whenever an pull request is opened, lets see what to do
     """
-    print(f"I am here 1")
-    comment = event.data["pull_request"]
-    print(f"Event: @{comment}")
-    #await gh.post(url, data={"body": message})
-
-@router.register("pull_request_review_comment", action="created")
-async def pull_request_comment_event(event, gh, *args, **kwargs):
-    """
-    Whenever an pull request gets a comment, lets see what to do
-    """
-    print(f"I am here")
-    comment = event.data["comment"]
-    print(f"Event: @{comment}")
+    url = event.data["pull_request"]
+    print(f"Event: @{url}")
     #await gh.post(url, data={"body": message})
 
 @routes.post("/")
@@ -46,9 +35,3 @@ async def main(request):
 
 if __name__ == "__main__":
     app = web.Application()
-    app.add_routes(routes)
-    port = os.environ.get("PORT")
-    if port is not None:
-        port = int(port)
-
-    web.run_app(app, port=port)
