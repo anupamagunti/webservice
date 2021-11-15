@@ -5,12 +5,12 @@ import pdb
 
 app = Flask(__name__)
 
-#base_bitbucket_url = os.environ['BITBUCKETURL']
-#bitbucket_api_token = os.environ['BITBUCKETAPITOKEN']
+base_bitbucket_url = os.environ['BITBUCKETURL']
+bitbucket_api_token = os.environ['BITBUCKETAPITOKEN']
 #base_bitbucket_url = "https://git.transunion.com"
-base_bitbucket_url = "https://git.com"
+#base_bitbucket_url = "https://git.com"
 #bitbucket_api_token = "NDA2MDMyMzU1NjM4OhT3EtV1PQ9/R1v2ZCkbczZynwhS"
-bitbucket_api_token = "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"
+#bitbucket_api_token = "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"
 
 if base_bitbucket_url is None or base_bitbucket_url == '':
     Exception('You must provide the base bitbucket url as an environmental variable.')
@@ -22,7 +22,7 @@ base_bitbucket_api_url = f'{base_bitbucket_url}/rest/api/1.0'
 bitbucket_headers = {"Authorization": f"Bearer {bitbucket_api_token}", "X-Atlassian-Token": "no-check"}
 
 
-@app.route('/webhook', methods=['POST'])
+@app.route('/', methods=['POST'])
 def parse_webhook():
 
     data = request.get_json()
