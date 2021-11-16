@@ -22,7 +22,7 @@ base_bitbucket_api_url = f'{base_bitbucket_url}/rest/api/1.0'
 bitbucket_headers = {"Authorization": f"Bearer {bitbucket_api_token}", "X-Atlassian-Token": "no-check"}
 
 
-@app.route('/', methods=['POST'])
+@app.route('/webhook', methods=['POST'])
 def parse_webhook():
 
     data = request.get_json()
