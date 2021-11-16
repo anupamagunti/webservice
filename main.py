@@ -27,9 +27,6 @@ def parse_webhook():
 
     data = request.get_json()
 
-    if data.get('pullRequest', {}).get('toRef').get('repository').get('name') != 'playbook-common':
-        return "Event not relevant."
-
     project = data.get('pullRequest', {}).get('toRef').get('repository').get('project').get('key')
     repo = data.get('pullRequest', {}).get('toRef').get('repository').get('name')
     pr_id = data.get('pullRequest', {}).get('id')
@@ -40,6 +37,11 @@ def parse_webhook():
     target_repo_id = data.get('pullRequest', {}).get('toRef').get('repository').get('id')
 
     base_pr_url = f'{base_bitbucket_api_url}/projects/{project}/repos/{repo}/pull-requests/{pr_id}'
+    
+    if data.get('eventKey', {}) == 'pr:comment:added':
+        
+        comment_text = data.get('comment', {}).get('text')
+        print(f"comment_text = @{comment_text}")
 
     if data.get('eventKey', {}) == 'pr:reviewer:approved':
 
