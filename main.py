@@ -2,6 +2,10 @@ from flask import Flask, request, abort
 import requests
 import os
 import pdb
+import logging
+
+import jinja2
+from jinja2.environment import Template
 
 app = Flask(__name__)
 
@@ -23,72 +27,64 @@ bitbucket_headers = {"Authorization": f"Bearer {bitbucket_api_token}", "X-Atlass
 
 
 @app.route('/webhook', methods=['POST'])
-def parse_webhook():
+def webhook():
 
     data = request.get_json()
 
+    bot_slug = requests.get(url=f'{base_bitbucket_url}/plugins/servlet/applinks/whoami', headers=bitbucket_headers).text
     project = data.get('pullRequest', {}).get('toRef').get('repository').get('project').get('key')
     repo = data.get('pullRequest', {}).get('toRef').get('repository').get('name')
     pr_id = data.get('pullRequest', {}).get('id')
+    pr_version = data.get('pullRequest', {}).get('version')
     author_name = data.get("pullRequest", {}).get("author").get("user").get("name")
+    author_display_name = data.get("pullRequest", {}).get("author").get("user").get("displayName")
+    actor_display_name = data.get('actor', {}).get('displayName')
     src_ref_id = data.get('pullRequest', {}).get('fromRef').get('id')
     src_repo_id = data.get('pullRequest', {}).get('fromRef').get('repository').get('id')
     target_ref_id = data.get('pullRequest', {}).get('toRef').get('id')
     target_repo_id = data.get('pullRequest', {}).get('toRef').get('repository').get('id')
-
+    target_branch = data.get('pullRequest', {}).get('toRef').get('displayId')
     base_pr_url = f'{base_bitbucket_api_url}/projects/{project}/repos/{repo}/pull-requests/{pr_id}'
-    
+
+    def is_pr_mergable(base_pr_url, headers):
+
+        merge_status_url = f'{base_pr_url}/merge'
+        merge_status = requests.get(merge_status_url, headers=headers).json()
+
+        if merge_status.get('canMerge') is True and not merge_status.get('conflicted') and \
+                merge_status.get('outcome') == 'CLEAN':
+            app.logger.debug('PR is mergable, returning True')
+            return True
+        else:
+            return False
+
+    def approve_pr(base_pr_url, headers, slug):
+
+        approval_url = f'{base_pr_url}/participants/{slug}'
+        json_body = {'status': 'APPROVED'}
+        r = requests.put(url=approval_url, headers=headers, json=json_body)
+
+        return r
+
+    def merge_pr(base_pr_url, pr_version, headers):
+
+        merge_url = f'{base_pr_url}/merge?version={pr_version}'
+        r = requests.post(url=merge_url, headers=headers)
+        return r
+
     if data.get('eventKey', {}) == 'pr:comment:added':
         
         comment_text = data.get('comment', {}).get('text')
         print(f"comment_text = @{comment_text}")
+        if comment_text.strip().casefold() == '/approve'.casefold():
+            r = approve_pr(base_pr_url=base_pr_url, headers=bitbucket_headers, slug=bot_slug)
+            is_mergable = is_pr_mergable(base_pr_url=base_pr_url, headers=bitbucket_headers)
+            if is_mergable:
+                merge_pr(base_pr_url=base_pr_url, pr_version=pr_version, headers=bitbucket_headers)
 
-    if data.get('eventKey', {}) == 'pr:reviewer:approved':
-
-        merge_status_url = f'{base_pr_url}/merge'
-        merge_status = requests.get(merge_status_url, headers=bitbucket_headers).json()
-
-        if merge_status.get('canMerge') is True and not merge_status.get('conflicted') and \
-                merge_status.get('outcome') == 'CLEAN':
-
-            comment_text = {"text": f"@{author_name} Your PR is ready to be merged."}
-            r = requests.post(url=f'{base_pr_url}/comments', headers=bitbucket_headers, json=comment_text)
-
-    if data.get('eventKey', {}) == 'pr:reviewer:updated':
-
-        removedReviewers = data.get('removedReviewers')
-        if removedReviewers:
-
-            reviewers_api_url = f'{base_bitbucket_url}/rest/default-reviewers/1.0/projects/{project}/repos/' \
-                                f'{repo}/reviewers'
-            reviewers_params = {'sourceRepoId': src_repo_id, 'targetRepoId': target_repo_id, 'sourceRefId': src_ref_id,
-                                'targetRefId': target_ref_id}
-            default_reviewers = requests.get(url=reviewers_api_url, params=reviewers_params, headers=bitbucket_headers)
-            removed_list = []
-            for reviewer in removedReviewers:
-                for default_reviewer in default_reviewers.json():
-                    if reviewer.get('name') == default_reviewer.get('name'):
-                        removed_list.append(reviewer.get('displayName'))
-
-            if len(removed_list) > 0:
-
-                users_string = [f'* {x}' for x in removed_list]
-                users_join = '\n'.join(users_string)
-                comment = \
-                    "@%s\nYou have removed the default user(s):\n%s\n\nYou are free to add additional approvers " \
-                    "but approval is required from at least one default reviewer. In order to expedite approval " \
-                    "of your request we ask that you do not remove any default reviewers." % (author_name, users_join)
-                comment_text = {"text": f"{comment}"}
-
-                r = requests.post(url=f'{base_pr_url}/comments', headers=bitbucket_headers, json=comment_text)
 
     return ('', 200, None)
 
 
 if __name__ == '__main__':
-    app.run(port=7999)
-
-if __name__ != '__main__':
-    gunicorn_logger = logging.getLogger('gunicorn.error')
-    app.logger.handlers = gunicorn_logger.handlers
-    app.logger.setLevel(gunicorn_logger.level)
+    app.run(port=9080, debug=True)
