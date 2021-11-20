@@ -1,5 +1,1 @@
 aiohttp
-gidgethub
-requests
-flask
-gunicorn
